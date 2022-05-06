@@ -1,0 +1,53 @@
+/**All rental orders for a member***/
+SELECT
+	t_order.*
+FROM
+	t_order,
+	t_frequentcontacts,
+	t_member
+WHERE
+	t_order.frequentId = t_frequentcontacts.frequentId
+AND t_member.memberId = t_frequentcontacts.memberId
+AND t_member.memberId = 1
+AND t_order.orderState = 'Canceled'
+ORDER BY t_order.orderTime DESC
+
+
+/*A business shop queries the order information under a certain order status */
+SELECT
+	*
+FROM
+	t_order
+WHERE
+	t_order.fromStoreId = 1
+AND t_order.orderState = 'Canceled'
+GROUP BY
+	orderTime DESC
+	
+	
+	
+If the vehicle is on lease you will have to remove the shop where the vehicle is located
+
+
+1.When the order is submitted, it is determined whether the shop where the vehicle is located is the shop fromStoreId. The status of the order is then changed to Pending payment.
+
+2.The renter's payment is complete and the status of the order is now Pending.
+The shop administrator logs on to the back office, checks the back office and performs the vehicle release. The vehicle's shop will then become toStorId, which is the shop number of the returned vehicle. The status of the order will now be "In Lease".
+
+2.1.If the order is cancelled in the middle of an order (before the shop has dispatched the vehicle), - (the storeId of the vehicle is changed back to fromStoreId). The status of the order is then changed to cancelled.  
+ (No cancellation action is set. This is done automatically by the timer. Timeout order not paid is automatically set to cancelled)
+
+3.The renter completes the rental and drives the car back to the shop. The car is returned to the shop. At this point the order status becomes Completed.
+
+3.1.A timer in the system's background calculates the statistics and changes the order status to pending for orders that have timed out.
+
+3.2 The return operation is a toStoreId operation. toStoreId shops log in to the back office, click on return and change the status of the order.
+
+3.3 fromStoreId You can check the status of the order as ① Pending payment - ② Pending departure - ③ Rental in progress - ④ Pending return - ⑤ Completed - ⑥ Cancelled.
+
+
+It is the same whether you are returning a car from the same shop or a different shop. You log in from toStoreId and return the car.
+List of all orders under this storeId. This is followed by the return operation.
+
+To leave a vehicle, you log in from fromStoreId and then leave the vehicle.
+Lists all orders under this storeId. Followed by the outgoing operation.
